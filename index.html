@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroLead - Inteligência Comercial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Visualization & Content Choices: 
+        - Problema - Desaceleração Crescimento (Ritmo Expansão): Goal: Show Trend -> Viz: Bar Chart (Chart.js) -> Interaction: Tooltips on hover -> Justification: Clear visual comparison of yearly growth percentages.
+        - Problema - Desaceleração Crescimento (EBITDA): Goal: Show Trend -> Viz: Bar Chart (Chart.js) -> Interaction: Tooltips on hover -> Justification: Clear visual comparison of EBITDA percentages.
+        - Problema - Outros (Assertividade, Conhecimento): Goal: Inform/Detail -> Viz: HTML/Tailwind Cards with icons -> Interaction: Static display, clear visual separation -> Justification: Structured and easily digestible presentation of textual problem statements.
+        - Solução NeuroLead - Features: Goal: Organize/Inform/Highlight -> Viz: Grid of HTML/Tailwind Cards with icons and hover effects -> Interaction: Subtle hover effects (CSS) to indicate interactivity and focus -> Justification: Visually appealing and digestible overview of NeuroLead's core features and benefits.
+        - Mercado - Concorrentes/Integrações/Fontes Editais: Goal: List/Inform -> Viz: Styled HTML Lists within cards -> Interaction: Static display -> Justification: Clear, organized, and easily scannable listing of relevant market players and data sources.
+        CONFIRMING NO SVG/Mermaid. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .nav-link {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.3s, color 0.3s;
+            color: #334155; /* slate-700 */
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+            padding: 1.5rem; /* p-6 */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Example max-width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 350px; /* Max height */
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                height: 350px;
+                max-height: 400px;
+            }
+        }
+        .tab-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-bottom: 3px solid transparent;
+            background-color: transparent;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #4b5563; /* gray-600 */
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .tab-button:hover {
+            color: #0ea5e9; /* sky-500 */
+        }
+        .tab-button.active {
+            color: #0ea5e9; /* sky-500 */
+            border-bottom-color: #0ea5e9; /* sky-500 */
+        }
+        .icon-placeholder {
+            font-size: 1.5rem; /* text-2xl */
+            margin-right: 0.75rem; /* mr-3 */
+            color: #0ea5e9; /* sky-500 */
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center">
+                    <span class="icon-placeholder">💡</span>
+                    <h1 class="text-3xl font-bold text-sky-600">NeuroLead</h1>
+                </div>
+                <nav class="hidden md:flex space-x-2">
+                    <a href="#desafio" class="nav-link active" data-section="desafio">O Desafio</a>
+                    <a href="#solucao" class="nav-link" data-section="solucao">A Solução NeuroLead</a>
+                    <a href="#mercado" class="nav-link" data-section="mercado">Mercado & Concorrentes</a>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-slate-600 hover:text-sky-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg">
+            <a href="#desafio" class="block nav-link active" data-section="desafio">O Desafio</a>
+            <a href="#solucao" class="block nav-link" data-section="solucao">A Solução NeuroLead</a>
+            <a href="#mercado" class="block nav-link" data-section="mercado">Mercado & Concorrentes</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <section id="desafio" class="content-section active pt-8">
+            <h2 class="text-3xl font-semibold mb-8 text-center text-sky-700">O Cenário Atual: Desafios na Prospecção e Crescimento</h2>
+            <p class="text-center text-lg text-slate-600 mb-12 max-w-3xl mx-auto">
+                As empresas enfrentam obstáculos significativos na prospecção de clientes e na manutenção de um crescimento sustentável. Processos desatualizados e a falta de ferramentas analíticas avançadas comprometem a eficiência comercial e a capacidade de identificar as melhores oportunidades.
+            </p>
+
+            <div class="mb-12">
+                <div class="flex justify-center border-b border-slate-200">
+                    <button class="tab-button active" data-tab="desafio-assertividade">Baixa Assertividade</button>
+                    <button class="tab-button" data-tab="desafio-conhecimento">Conhecimento Centralizado</button>
+                    <button class="tab-button" data-tab="desafio-crescimento">Desaceleração</button>
+                </div>
+            </div>
+
+            <div id="desafio-assertividade" class="tab-content">
+                <h3 class="text-2xl font-semibold mb-6 text-sky-600">1. Baixa Assertividade na Prospecção</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">⚙️</span>Processos Manuais e Fragmentados</h4>
+                        <p class="text-slate-600">Ciclos de vendas excessivamente longos, dependência de especialistas e falta de inovação minam a agilidade.</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🎯</span>Alvo Incorreto</h4>
+                        <p class="text-slate-600">Dificuldade em identificar a pessoa certa, o canal ideal e o momento oportuno para a abordagem.</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">📉</span>Priorização Inadequada</h4>
+                        <p class="text-slate-600">Esforços direcionados a leads de baixo valor estratégico, impactando a eficiência e os resultados.</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🛠️</span>Ausência de Ferramentas Analíticas</h4>
+                        <p class="text-slate-600">Falta de mecanismos avançados de score para identificar prospects aderentes ao portfólio, diluindo o foco comercial.</p>
+                    </div>
+                    <div class="card md:col-span-2">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🧠</span>Potencial Consultivo Travado</h4>
+                        <p class="text-slate-600">A não utilização de inteligência preditiva baseada em dados históricos e tendências impede diagnósticos precisos de demandas e a geração de valor efetiva.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="desafio-conhecimento" class="tab-content hidden">
+                <h3 class="text-2xl font-semibold mb-6 text-sky-600">2. Centralização e Fragmentação do Conhecimento Comercial</h3>
+                 <div class="grid md:grid-cols-1 gap-6 mb-8">
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">📚</span>Informações Desatualizadas e Fragmentadas</h4>
+                        <p class="text-slate-600">Dificuldade de acesso a recomendações de clientes, KPIs atualizados, sugestões de necessidades e argumentos relevantes para uma abordagem consultiva.</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🗣️</span>Imprecisão nas Respostas e Abordagens</h4>
+                        <p class="text-slate-600">Adoção desigual de soluções automatizadas e falta de padronização entre as células comerciais comprometem a qualidade e consistência da comunicação.</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">📄</span>Relatórios de Mercado Defasados</h4>
+                        <p class="text-slate-600">Falta de uso de NLP e outras tecnologias para qualificar contratos (BPO, Outsourcing de TI), prever tendências de mercado e sugerir ações estratégicas, especialmente com órgãos governamentais.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="desafio-crescimento" class="tab-content hidden">
+                <h3 class="text-2xl font-semibold mb-6 text-sky-600">3. Desaceleração do Crescimento e Sinais de Alerta</h3>
+                <p class="text-slate-600 mb-8 text-center max-w-2xl mx-auto">Indicadores financeiros e de expansão apontam para uma necessidade urgente de reavaliar estratégias e identificar novas avenidas de crescimento para evitar a estagnação.</p>
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-3 text-center text-slate-700">Ritmo de Expansão Anual</h4>
+                        <div class="chart-container">
+                            <canvas id="crescimentoChart"></canvas>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-2 text-center">***Projeção para 2025</p>
+                    </div>
+                    <div class="card">
+                        <h4 class="text-xl font-semibold mb-3 text-center text-slate-700">EBITDA (Q1)</h4>
+                         <div class="chart-container">
+                            <canvas id="ebitdaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                 <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">⚠️</span>Mercados Saturados e Esgotamento</h4>
+                    <p class="text-slate-600">Necessidade crítica de prever sinais de esgotamento em mercados tradicionais e redirecionar esforços para novas oportunidades mais rentáveis e com maior potencial de crescimento a longo prazo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="solucao" class="content-section pt-8">
+            <h2 class="text-3xl font-semibold mb-8 text-center text-sky-700">NeuroLead: A Inteligência que Antecipa Oportunidades</h2>
+            <p class="text-center text-lg text-slate-600 mb-12 max-w-3xl mx-auto">
+                NeuroLead é uma plataforma de inteligência comercial projetada para transformar a pré-vendas. Utilizando algoritmos avançados e análise preditiva, capacitamos seu time comercial a identificar e priorizar as melhores oportunidades, otimizar abordagens e acelerar o crescimento.
+            </p>
+            
+            <div class="card mb-10">
+                <h3 class="text-2xl font-semibold mb-4 text-sky-600 flex items-center"><span class="icon-placeholder">🔬</span>Prova de Conceito (POC)</h3>
+                <p class="text-slate-600">Nossa POC é construída sobre uma base sólida de treinamento supervisionado, utilizando dados iniciais de fontes relevantes como Glassdoor, Reclame Aqui, Meu CNPJ, LinkedIn e Indeed. Isso garante que nossos modelos preditivos sejam robustos e alinhados com a realidade do mercado desde o início.</p>
+            </div>
+
+            <h3 class="text-2xl font-semibold mb-8 text-center text-sky-600">Como o NeuroLead Transforma a Pré-Vendas:</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">📊</span>Painel Dinâmico de Leads</h4>
+                    <p class="text-slate-600">Visualização clara de leads por score (potencial, fit, porte, setor). Sinalização de "oportunidades quentes" e monitoramento de segmentos em ascensão.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🔮</span>Assistente Estratégico Preditivo</h4>
+                    <p class="text-slate-600">Antecipa oportunidades, identificando padrões de perfis que necessitam das suas soluções antes mesmo que eles demonstrem interesse explícito.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">⚙️</span>Algoritmo de Machine Learning</h4>
+                    <p class="text-slate-600">Alimentado por dados de prospects (setor, porte, comportamento, etc.), gera scores para priorizar leads e ranquear chances de conversão.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🎯</span>Categorização e Sugestão de Ações</h4>
+                    <p class="text-slate-600">Oportunidades categorizadas por setores estratégicos (governo, BPO) com sugestões de up-sell e cross-sell personalizadas.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">⏳</span>Visão 360° do Mercado</h4>
+                    <p class="text-slate-600">Agrega dados de prospects, concorrentes e tendências em uma linha do tempo interativa e de fácil compreensão.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">📈</span>Relatórios Dinâmicos e Recomendações</h4>
+                    <p class="text-slate-600">Relatórios com recomendações estratégicas e visualizações gráficas para antecipar necessidades e movimentos do mercado.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🔑</span>Cadastro de Tomadores de Decisão</h4>
+                    <p class="text-slate-600">Base de dados atualizada de decisores e "trigger events", segmentada por setor/porte para abordagens assertivas.</p>
+                </div>
+                 <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🧠</span>Base de Conhecimento Centralizada</h4>
+                    <p class="text-slate-600">Cadastro de stakeholders e histórico de interações para treinar equipes e refinar estratégias continuamente.</p>
+                </div>
+                <div class="card">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">⏱️</span>KPIs em Tempo Real</h4>
+                    <p class="text-slate-600">Dashboards interativos (taxa de conversão, leads qualificados) para acompanhamento e ajuste rápido de estratégias.</p>
+                </div>
+                <div class="card lg:col-span-1">
+                    <h4 class="text-xl font-semibold mb-2 text-slate-700 flex items-center"><span class="icon-placeholder">🌍</span>Identificação de Novos Mercados</h4>
+                    <p class="text-slate-600">Análise de dados para identificar segmentos promissores e sugerir abordagens que maximizem a lucratividade.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="mercado" class="content-section pt-8">
+            <h2 class="text-3xl font-semibold mb-8 text-center text-sky-700">Cenário Competitivo e Potenciais Integrações</h2>
+            <p class="text-center text-lg text-slate-600 mb-12 max-w-3xl mx-auto">
+                Compreender o ecossistema em que NeuroLead opera é crucial. Analisamos os principais concorrentes e identificamos fontes de dados valiosas, além de plataformas com potencial de integração para enriquecer ainda mais nossa solução.
+            </p>
+            <div class="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="card lg:col-span-1">
+                    <h3 class="text-2xl font-semibold mb-4 text-sky-600 flex items-center"><span class="icon-placeholder">🏆</span>Principais Concorrentes</h3>
+                    <ul class="list-disc list-inside text-slate-600 space-y-1">
+                        <li>Totvs</li>
+                        <li>CI&T</li>
+                        <li>Infosys</li>
+                        <li>Accenture</li>
+                        <li>Capgemini</li>
+                        <li>Tata Consultancy Services (TCS)</li>
+                        <li>IBM Services (IBM Consulting)</li>
+                        <li>Deloitte (Digital / Technology Consulting)</li>
+                        <li>Sonda IT</li>
+                        <li>BRQ Digital Solutions</li>
+                        <li>Radix Engenharia</li>
+                        <li>CTIS</li>
+                        <li>DATAPREV</li>
+                        <li>SERPRO</li>
+                        <li>Resource IT (Cognizant)</li>
+                        <li>Everis/NTT DATA</li>
+                        <li>Indra</li>
+                    </ul>
+                </div>
+                <div class="card lg:col-span-1">
+                    <h3 class="text-2xl font-semibold mb-4 text-sky-600 flex items-center"><span class="icon-placeholder">🔍</span>Fontes para Análise de Editais</h3>
+                    <p class="text-slate-500 mb-3 text-sm">Para análise precisa de vencedores em licitações governamentais:</p>
+                    <ul class="list-disc list-inside text-slate-600 space-y-1">
+                        <li>Portal da Transparência</li>
+                        <li>Compras Governamentais (Comprasnet)</li>
+                        <li>Diário Oficial</li>
+                        <li>Licitações-e (Banco do Brasil)</li>
+                    </ul>
+                </div>
+                <div class="card lg:col-span-1">
+                    <h3 class="text-2xl font-semibold mb-4 text-sky-600 flex items-center"><span class="icon-placeholder">🔗</span>Plataformas para Estudo de Integração</h3>
+                     <p class="text-slate-500 mb-3 text-sm">Potenciais integrações para expandir funcionalidades:</p>
+                    <ul class="list-disc list-inside text-slate-600 space-y-1">
+                        <li>CRM (Genérico)</li>
+                        <li>Salesforce</li>
+                        <li>SAP</li>
+                        <li>Crunchbase</li>
+                        <li>ZoomInfo</li>
+                        <li>LinkedIn Sales Navigator</li>
+                        <li>BuiltWith</li>
+                        <li>Statista</li>
+                        <li>Data.com</li>
+                        <li>S&P Capital IQ</li>
+                        <li>Portal do Cliente (Genérico)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; <span id="currentYear"></span> NeuroLead. Todos os direitos reservados.</p>
+            <p class="text-sm">Inteligência Comercial para Resultados Exponenciais.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.content-section');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            function updateActiveSection(targetId) {
+                sections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    if (link.getAttribute('data-section') === targetId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                 // Close mobile menu after navigation
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            }
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-section');
+                    updateActiveSection(targetId);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Tabs for "O Desafio" section
+            const tabButtons = document.querySelectorAll('#desafio .tab-button');
+            const tabContents = document.querySelectorAll('#desafio .tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        if (content.id === tabId) {
+                            content.classList.remove('hidden');
+                            content.classList.add('block'); // Or 'flex' if needed
+                        } else {
+                            content.classList.add('hidden');
+                            content.classList.remove('block');
+                        }
+                    });
+                });
+            });
+
+
+            // Chart.js implementations
+            const growthData = {
+                labels: ['2022', '2023', '2024', '2025***'],
+                datasets: [{
+                    label: 'Ritmo de Expansão (%)',
+                    data: [24, 13, 14, 7],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(255, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            const ebitdaData = {
+                labels: ['EBITDA Q1 2024', 'EBITDA Q1 2025'],
+                datasets: [{
+                    label: 'EBITDA (%)',
+                    data: [8.7, 5.9],
+                     backgroundColor: [
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: false,
+                            callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                if (label.length > 16) {
+                                    return label.substring(0, 16) + '...';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    }
+                }
+            };
+            
+            const crescimentoCtx = document.getElementById('crescimentoChart');
+            if (crescimentoCtx) {
+                new Chart(crescimentoCtx, {
+                    type: 'bar',
+                    data: growthData,
+                    options: chartOptions
+                });
+            }
+
+            const ebitdaCtx = document.getElementById('ebitdaChart');
+            if (ebitdaCtx) {
+                 new Chart(ebitdaCtx, {
+                    type: 'bar',
+                    data: ebitdaData,
+                    options: chartOptions
+                });
+            }
+            
+            // Activate the first tab in "O Desafio" by default
+            const firstTabButton = document.querySelector('#desafio .tab-button[data-tab="desafio-assertividade"]');
+            if(firstTabButton) firstTabButton.click();
+
+        });
+    </script>
+</body>
+</html>
